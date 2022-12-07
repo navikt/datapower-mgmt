@@ -6,6 +6,7 @@ import subprocess
 
 from no.api.datapowerapi import DatapowerAPI
 from no.util import paramparser
+from no.util.scperror import ScpError
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,20 @@ def _setLogConfig(debug: bool):
 
 def _send_file_to_ilmt_server(file, destination):
     try:
-        p = subprocess.Popen(["scp", file, destination])
-        sts = os.waitpid(p.pid, 0)
+        p = subprocess.Popen(["scp", file, destination],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p.wait()
+        # sts = os.waitpid(p.pid, 0)
+        if "Permission denied" in repr(p.stderr.readline):
+            raise ScpError("Permission denied")
     except subprocess.CalledProcessError as e:
         logger.error("Failed to send file to ILMT server")
         raise e
     except OSError as e:
         logger.error("Failed to send file to ILMT server")
+        raise e
+    except ScpError as e:
+        logger.error("Permission denied")
         raise e
     else:
         logger.info("Successfully sendt {} to ILMT".format(file))

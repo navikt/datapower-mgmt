@@ -25,6 +25,7 @@ def _createbackupdir(path):
         return False
     return True
 
+
 def _setLogConfig(debug: bool):
     if (debug):
         level = logging.DEBUG
@@ -55,8 +56,9 @@ def _saveFile(filepath, data):
 #    else:
 #        logger.info("Successfully wrote {}".format(filepath))
 
+
 def human_readable_size(size, decimal_places=2):
-    for unit in ['B','KiB','MiB','GiB','TiB']:
+    for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB']:
         if size < 1024.0:
             break
         size /= 1024.0
@@ -69,6 +71,7 @@ def listToString(s):
 
     # return string
     return str1.join(s)
+
 
 if __name__ == "__main__":
     args = paramparser._parse_cli_args()
@@ -91,7 +94,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     for dpInstance in args.inventory_list:
-        logger.info("Running against: " + dpInstance + " on port " + str(args.port))
+        logger.info(f"Running against: {dpInstance} on port {str(args.port)}")
         # Build XML for SOMA call
         full_backup = '<?xml version="1.0" encoding="UTF-8"?><env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"><env:Body><dp:request xmlns:dp="http://www.datapower.com/schemas/management"><dp:do-backup format="ZIP"><dp:user-comment>Automated backup of %s</dp:user-comment><dp:domain name="%s"/></dp:do-backup></dp:request></env:Body></env:Envelope>' % (
             args.domain, args.domain)
@@ -106,26 +109,26 @@ if __name__ == "__main__":
         }
 
         cert_reqs = "CERT_NONE" if args.ignore_ssl else "CERT_REQUIRED"
-        logger.info(dpInstance + ": ignore_ssl " + str(args.ignore_ssl))
-        logger.debug(dpInstance + ": cert_reqs " + cert_reqs)
-
-        logger.debug(dpInstance + ": print headers " + json.dumps(_headers))
+        logger.info(f"{dpInstance}: ignore_ssl {str(args.ignore_ssl)}")
+        logger.debug(f"{dpInstance}: cert_reqs {cert_reqs}")
 
         _http = urllib3.HTTPSConnectionPool(
             dpInstance, args.port, headers=_headers, cert_reqs=cert_reqs, timeout=timeout
         )
 
         try:
-            resp = _http.request("POST", dpUri, body=full_backup, retries=False)
+            resp = _http.request(
+                "POST", dpUri, body=full_backup, retries=False)
             logger.info(dpInstance + ": Response status " + str(resp.status))
             logger.info(dpInstance + ": Parsing response XML")
 
             if resp.status >= 400:
-                logger.error(dpInstance + ": Connection error " + str(resp.status))
+                logger.error(
+                    f"{dpInstance}: Connection error {str(resp.status)}")
                 instanceerror.append(dpInstance)
                 continue
         except urllib3.exceptions.HTTPError as e:
-            logger.error(dpInstance + ": Connection error")
+            logger.error(f"{dpInstance} : Connection error")
             logger.error(e)
             instanceerror.append(dpInstance)
             continue
@@ -139,52 +142,60 @@ if __name__ == "__main__":
                 continue
         except IndexError as e:
             # Catch IndexError because dp:result does not exist
-            logger.debug(dpInstance + ": IndexError because off dp:result Authentication failure. This is OK")
+            logger.debug(
+                f"{dpInstance}: IndexError because off dp:result Authentication failure. This is OK")
 
         try:
             logger.debug(dpInstance + ": Checking for dp:result ERROR")
             if dom.getElementsByTagName('dp:result')[0].firstChild.nodeValue == "ERROR":
-                logger.error(dpInstance + ": <dp:result>ERROR</dp:result> Check the appliance for error")
+                logger.error(
+                    f"{dpInstance}: <dp:result>ERROR</dp:result> Check the appliance for error")
                 instanceerror.append(dpInstance)
                 continue
         except IndexError as e:
             # Catch IndexError because dp:result does not exist
-            logger.debug(dpInstance + ": IndexError because off dp:result ERROR. This is OK")
-            #logger.debug(resp.data)
+            logger.debug(
+                f"{dpInstance}: IndexError because off dp:result ERROR. This is OK")
+            # logger.debug(resp.data)
 
-        logger.debug("Checking unavailable instances before getting dp:file: {}".format(instanceerror))
+        logger.debug(
+            f"Checking unavailable instances before getting dp:file: {instanceerror}")
         try:
-            logger.debug(dpInstance + ": Trying to get dp:file")
-            encodedBackup = dom.getElementsByTagName('dp:file')[0].firstChild.nodeValue
+            logger.debug(f"{dpInstance}: Trying to get dp:file")
+            encodedBackup = dom.getElementsByTagName(
+                'dp:file')[0].firstChild.nodeValue
             if encodedBackup:
-                logger.debug(dpInstance + ": <dp:file> found")
-                logger.debug(dpInstance + ": encodedBackup found")
+                logger.debug(f"{dpInstance}: <dp:file> found")
+                logger.debug(f"{dpInstance}: encodedBackup found")
             else:
-                logger.debug(dpInstance + ": <dp:file> not found")
+                logger.debug(f"{dpInstance}: <dp:file> not found")
         except IndexError as e:
             # Catch IndexError because dp:result does not exist
-            logger.debug(dpInstance + ": where is dp:file?")
+            logger.debug(f"{dpInstance}: where is dp:file?")
             logger.error(e)
             instanceerror.append(dpInstance)
 
-        logger.debug("Checking unavailable instances after getting dp:file: {}".format(instanceerror))
+        logger.debug(
+            f"Checking unavailable instances after getting dp:file: {instanceerror}")
 
-        backupFileName = time.strftime("%Y-%m-%d_%H%M") + '_backup_' + dpInstance + '_' + args.domain
+        backupFileName = f"{time.strftime('%Y-%m-%d_%H%M')}_backup_{dpInstance}_{args.domain}"
 
         # Decode the content and write it as ZIP
-        logger.info(dpInstance + ": Decoding base64 file")
+        logger.info(f"{dpInstance}: Decoding base64 file")
         decodedBackup = base64.b64decode(encodedBackup)
 
-        logger.info(dpInstance + ": Writing decoded response to ZIP file (" + human_readable_size(len(decodedBackup)) + ")")
+        logger.info(
+            f"{dpInstance}: Writing decoded response to ZIP file ({human_readable_size(len(decodedBackup))})")
         _saveFile(savepath + backupFileName + ".zip", decodedBackup)
 
         # Finish
-        logger.info("Backup finished for " + dpInstance)
+        logger.info(f"Backup finished for {dpInstance}")
 
     success = [e for e in args.inventory_list if e not in instanceerror]
-    logger.info("Successfully backed up: " + listToString(success))
+    logger.info(f"Successfully backed up: {listToString(success)}")
     if len(instanceerror) > 0:
-        logger.error("main: Error occured. Some instances where unavailable: {}".format(listToString(instanceerror)))
+        logger.error(
+            f"main: Error occured. Some instances where unavailable: {listToString(instanceerror)}")
         sys.exit(1)
     else:
         sys.exit(0)
