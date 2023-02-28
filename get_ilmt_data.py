@@ -39,8 +39,10 @@ def _send_file_to_ilmt_server(file, destination):
         p = subprocess.Popen(["scp", file, destination],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.wait()
+        out, err = p.communicate()
         # sts = os.waitpid(p.pid, 0)
-        if "Permission denied" in repr(p.stderr.readline):
+        logger.info(err)
+        if "Permission denied" in repr(err):
             raise ScpError("Permission denied")
     except subprocess.CalledProcessError as e:
         logger.error("Failed to send file to ILMT server")

@@ -28,6 +28,7 @@ def _saveFile(filepath, data):
     else:
         print("Successfully wrote {}".format(filepath))
 
+
 if __name__ == "__main__":
     args = paramparser._parse_cli_args()
     print(args)

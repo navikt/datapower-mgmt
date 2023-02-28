@@ -46,7 +46,7 @@ class DatapowerAPI:
     # Get pubcert files
     def get_all_pubcert(self):
         resp = self._request("GET", "/mgmt/filestore/default/pubcert")
-        #logger.debug(resp.data)
+        # logger.debug(resp.data)
         files = json.loads(resp.data)
 
         b64files = []
@@ -62,7 +62,7 @@ class DatapowerAPI:
 
     def get_all_ilmt_files(self):
         resp = self._request("GET", "/mgmt/filestore/default/local/ilmt/output")
-        #logger.debug(resp.data)
+        # logger.debug(resp.data)
         files = json.loads(resp.data)
 
         b64files = []
@@ -115,6 +115,24 @@ class DatapowerAPI:
         logger.debug(resp.data)
         status = json.loads(resp.data)
         return status['DomainStatus']
+
+    def get_domain_version(self, domain):
+        resp = self._request("GET", f"/mgmt/status/{domain}/local/version")
+        logger.debug(resp.data)
+        response = json.loads(resp.data)
+        version = base64.b64decode(response["file"])
+        return version
+
+    def get_interface_bytype_ipaddress(self, type, name):
+        resp = self._request(
+            "GET", f"/mgmt/config/default/${type}/${name}/IPAddress")
+        logger.debug(resp.data)
+        status = json.loads(resp.data)
+        interfaces = {}
+        interfaces["Interface"] = type
+        interfaces["Name"] = name
+        interfaces["IPAddress"] = status['IPAddress']
+        return interfaces
 
     def _extract_b64_file(self, filename, href):
         fileresp = self._request("GET", href)
