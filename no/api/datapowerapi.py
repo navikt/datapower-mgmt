@@ -20,8 +20,6 @@ class DatapowerAPI:
             "Accept": "application/json",
             "Content-Type": "application/json"
         }
-        logging.debug("print headers " + json.dumps(self._headers))
-        logging.debug(self._headers)
         logging.debug("hostname: " + hostname)
         logging.debug("port: " + str(port))
         self._http = urllib3.HTTPSConnectionPool(

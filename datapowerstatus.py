@@ -66,10 +66,7 @@ if __name__ == "__main__":
                           'Domains': domains,
                           'uptime': uptime['uptime2'],
                           'bootuptime2': uptime['bootuptime2']}
-        #instancestatus['State'] = status['State']
-        #instancestatus['Version'] = firmware['Version']
-        #instancestatus['MachineType'] = firmware['MachineType']
-        #instancestatus['DomainStatus'] = client.get_domains()
+
 
         output.append(instancestatus)
         #logger.debug(instancestatus)

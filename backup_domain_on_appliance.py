@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
         cert_reqs = "CERT_NONE" if args.ignore_ssl else "CERT_REQUIRED"
         logger.info(f"{dpInstance}: ignore_ssl {str(args.ignore_ssl)}")
-        logger.debug(f"{dpInstance}: cert_reqs {cert_reqs}")
+        # logger.debug(f"{dpInstance}: cert_reqs {cert_reqs}")
 
         _http = urllib3.HTTPSConnectionPool(
             dpInstance, args.port, headers=_headers, cert_reqs=cert_reqs, timeout=timeout
