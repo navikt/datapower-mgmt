@@ -58,8 +58,8 @@ if __name__ == "__main__":
         domains = []
         for domain in client.get_domains():
             name = domain['name']
-            state = client.get_domain_mAdminState(name)
-            domains.append({"domain": name, "mAdminState": state})
+            mAdminState = client.get_domain_mAdminState(name)
+            domains.append({"domain": name, "mAdminState": mAdminState})
 
         instancestatus = {'dpInstance': dpInstance,
                           'State': status['State'],

@@ -44,7 +44,7 @@ class DatapowerAPI:
     def get_domain_mAdminState(self, domain):
         resp = self._request("GET", f"/mgmt/config/default/Domain/{domain}")
         domain = json.loads(resp.data.decode("utf-8"))
-        return domain['mAdminState']
+        return domain['Domain']['mAdminState']
 
     # Get pubcert files
     def get_all_pubcert(self):
