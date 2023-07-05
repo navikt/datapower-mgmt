@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
         domains = []
         for domain in client.get_domains():
-            name = domain['name']]
+            name = domain['name']
             state = client.get_domain_mAdminState(name)
             domains.append({"domain": name, "mAdminState": state})
 
