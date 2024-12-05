@@ -44,6 +44,8 @@ def _send_file_to_ilmt_server(file, destination):
         logger.info(err)
         if "Permission denied" in repr(err):
             raise ScpError("Permission denied")
+        if "Not a directory" in repr(err):
+            raise ScpError("Filepermissions error.")
     except subprocess.CalledProcessError as e:
         logger.error("Failed to send file to ILMT server")
         raise e
